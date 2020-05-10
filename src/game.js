@@ -3,6 +3,9 @@ import assets from './assets/*.png';
 
 let platforms, player, stars, score = 0, scoreText, bombs, gameOver;
 
+const WIDTH = 800;
+const HEIGHT = 600;
+
 class GameScene extends Phaser.Scene {
     constructor() {
         super({
@@ -16,21 +19,21 @@ class GameScene extends Phaser.Scene {
         let cursors = this.input.keyboard.createCursorKeys();
 
         if (cursors.left.isDown) {
-            player.setVelocityX(-160);
-            player.anims.play('left', true);
+            this.player.setVelocityX(-160);
+            //player.anims.play('left', true);
         }
         else if (cursors.right.isDown) {
-            player.setVelocityX(160);
-            player.anims.play('right', true);
+            this.player.setVelocityX(160);
+            //player.anims.play('right', true);
         }
         else {
-            player.setVelocityX(0);
-            player.anims.play('turn');
+            this.player.setVelocityX(0);
+            //player.anims.play('turn');
         }
 
-        if (cursors.up.isDown && player.body.touching.down) {
-            player.setVelocityY(-660);
-        }
+        // if (cursors.up.isDown && player.body.touching.down) {
+        //     player.setVelocityY(-660);
+        // }
     }
 
     preload() {
@@ -45,97 +48,110 @@ class GameScene extends Phaser.Scene {
     }
 
     create() {
-        this.add.image(400, 300, 'sky');
+        const THICKNESS = 20;
+        let level = this.level = this.physics.add.staticGroup();
+        level.add(this.add.rectangle(0, 0, WIDTH, THICKNESS, 0x00aa00).setOrigin(0, 0));
+        level.add(this.add.rectangle(WIDTH - THICKNESS, 0, THICKNESS, HEIGHT, 0x00aa00).setOrigin(0, 0));
+        level.add(this.add.rectangle(0, HEIGHT - THICKNESS, WIDTH, THICKNESS, 0x00aa00).setOrigin(0, 0));
+        level.add(this.add.rectangle(0, 0, THICKNESS, HEIGHT, 0x00aa00).setOrigin(0, 0));
 
-        platforms = this.physics.add.staticGroup();
+        this.player = this.physics.add.sprite(100, 450, 'dude');
+        this.physics.add.collider(this.player, level);
+        
 
-        platforms.create(400, 568, 'ground').setScale(2).refreshBody();
+        
+        // level.add.rectangle(0, HEIGHT - THICKNESS, WIDTH, THICKNESS, 0x00aa00).setOrigin(0, 0);
+        // level.add.rectangle(0, HEIGHT - THICKNESS, WIDTH, THICKNESS, 0x00aa00).setOrigin(0, 0);
+        // level.add.rectangle(0, HEIGHT - THICKNESS, WIDTH, THICKNESS, 0x00aa00).setOrigin(0, 0);
+        // this.add.image(400, 300, 'sky');
 
-        platforms.create(600, 400, 'ground');
-        platforms.create(50, 250, 'ground');
-        platforms.create(750, 220, 'ground');
+        // platforms = this.physics.add.staticGroup();
 
-        player = this.physics.add.sprite(100, 450, 'dude');
+        // platforms.create(400, 568, 'ground').setScale(2).refreshBody();
 
-        player.setBounce(0.2);
-        player.setCollideWorldBounds(true);
-        player.body.setGravityY(300)
+        // platforms.create(600, 400, 'ground');
+        // platforms.create(50, 250, 'ground');
+        // platforms.create(750, 220, 'ground');
 
-        this.physics.add.collider(player, platforms);
+        
+        // player.setBounce(0.2);
+        // player.setCollideWorldBounds(true);
+        // player.body.setGravityY(300)
 
-        this.anims.create({
-            key: 'left',
-            frames: this.anims.generateFrameNumbers('dude', { start: 0, end: 3 }),
-            frameRate: 10,
-            repeat: -1
-        });
+        // this.physics.add.collider(player, platforms);
 
-        this.anims.create({
-            key: 'turn',
-            frames: [ { key: 'dude', frame: 4 }],
-            frameRate: 20
-        });
+        // this.anims.create({
+        //     key: 'left',
+        //     frames: this.anims.generateFrameNumbers('dude', { start: 0, end: 3 }),
+        //     frameRate: 10,
+        //     repeat: -1
+        // });
 
-        this.anims.create({
-            key: 'right',
-            frames: this.anims.generateFrameNumbers('dude', { start: 5, end: 8 }),
-            frameRate: 10,
-            repeat: -1
-        });
+        // this.anims.create({
+        //     key: 'turn',
+        //     frames: [ { key: 'dude', frame: 4 }],
+        //     frameRate: 20
+        // });
 
-        stars = this.physics.add.group({
-            key: 'star',
-            repeat: 11,
-            setXY: { x: 12, y: 0, stepX: 70 }
-        });
+        // this.anims.create({
+        //     key: 'right',
+        //     frames: this.anims.generateFrameNumbers('dude', { start: 5, end: 8 }),
+        //     frameRate: 10,
+        //     repeat: -1
+        // });
 
-        stars.children.iterate(child => {
-            child.setBounceY(Phaser.Math.FloatBetween(0.4, 0.8));
-        });
+        // stars = this.physics.add.group({
+        //     key: 'star',
+        //     repeat: 11,
+        //     setXY: { x: 12, y: 0, stepX: 70 }
+        // });
 
-        this.physics.add.collider(stars, platforms);
+        // stars.children.iterate(child => {
+        //     child.setBounceY(Phaser.Math.FloatBetween(0.4, 0.8));
+        // });
 
-        this.physics.add.overlap(player, stars, this.collectStar, null, this);
+        // this.physics.add.collider(stars, platforms);
 
-        bombs = this.physics.add.group();
+        // this.physics.add.overlap(player, stars, this.collectStar, null, this);
 
-        this.physics.add.collider(bombs, platforms);
+        // bombs = this.physics.add.group();
 
-        this.physics.add.collider(player, bombs, this.hitBomb, null, this);
+        // this.physics.add.collider(bombs, platforms);
 
-        scoreText = this.add.text(16, 16, 'Score: 0', { fontSize: '32px', fill: '#000' });
+        // this.physics.add.collider(player, bombs, this.hitBomb, null, this);
+
+        // scoreText = this.add.text(16, 16, 'Score: 0', { fontSize: '32px', fill: '#000' });
     }
 
-    hitBomb(player, bomb) {
-        this.physics.pause();
+    // hitBomb(player, bomb) {
+    //     this.physics.pause();
     
-        player.setTint(0xff0000);
+    //     player.setTint(0xff0000);
     
-        player.anims.play('turn');
+    //     player.anims.play('turn');
     
-        gameOver = true;
-    }
+    //     gameOver = true;
+    // }
     
-    collectStar(player, star) {
-        star.disableBody(true, true);
+    // collectStar(player, star) {
+    //     star.disableBody(true, true);
     
-        score += 10;
-        scoreText.setText('Score: ' + score);
+    //     score += 10;
+    //     scoreText.setText('Score: ' + score);
     
-        if (stars.countActive(true) === 0) {
-            stars.children.iterate(child => {
-                child.enableBody(true, child.x, 0, true, true);
-            });
+    //     if (stars.countActive(true) === 0) {
+    //         stars.children.iterate(child => {
+    //             child.enableBody(true, child.x, 0, true, true);
+    //         });
     
-            let x = (player.x < 400) ? Phaser.Math.Between(400, 800) : Phaser.Math.Between(0, 400);
+    //         let x = (player.x < 400) ? Phaser.Math.Between(400, 800) : Phaser.Math.Between(0, 400);
     
-            let bomb = bombs.create(x, 16, 'bomb');
-            bomb.setBounce(1);
-            bomb.setCollideWorldBounds(true);
-            bomb.setVelocity(Phaser.Math.Between(-200, 200), 20);
-        }
-    }
-    
+    //         let bomb = bombs.create(x, 16, 'bomb');
+    //         bomb.setBounce(1);
+    //         bomb.setCollideWorldBounds(true);
+    //         bomb.setVelocity(Phaser.Math.Between(-200, 200), 20);
+    //     }
+    // }  
 }
 
 let config = {
@@ -144,9 +160,7 @@ let config = {
     height: 600,
     physics: {
         default: 'arcade',
-        arcade: {
-            gravity: { y: 200 }
-        }
+        arcade: {}
     },
     scene: GameScene
 };
