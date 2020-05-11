@@ -18,18 +18,26 @@ class GameScene extends Phaser.Scene {
     update() {
         let cursors = this.input.keyboard.createCursorKeys();
 
-        if (cursors.left.isDown) {
-            this.player.setVelocityX(-160);
+        
+        if (cursors.left.isDown && !this.physics.overlap(this.haloLeft, this.level)) {
+            this.player.body.setVelocity(-160, 0);
             //player.anims.play('left', true);
         }
-        else if (cursors.right.isDown) {
-            this.player.setVelocityX(160);
+        else if (cursors.right.isDown && !this.physics.overlap(this.haloRight, this.level)) {
+            this.player.body.setVelocity(160, 0);
             //player.anims.play('right', true);
         }
-        else {
-            this.player.setVelocityX(0);
-            //player.anims.play('turn');
+        else if (cursors.up.isDown && !this.physics.overlap(this.haloTop, this.level)) {
+            this.player.body.setVelocity(0, -160);
         }
+        else if (cursors.down.isDown && !this.physics.overlap(this.haloBottom, this.level)) {
+            this.player.body.setVelocity(0, 160)
+        }
+        // this.player.body
+        // else {
+        //     this.player.setVelocityX(0);
+        //     //player.anims.play('turn');
+        // }
 
         // if (cursors.up.isDown && player.body.touching.down) {
         //     player.setVelocityY(-660);
@@ -43,21 +51,43 @@ class GameScene extends Phaser.Scene {
         this.load.image('bomb', assets.bomb);
         this.load.spritesheet('dude', 
             assets.dude,
-            { frameWidth: 32, frameHeight: 48 }
+            { frameWidth: 32, frameHeight: 32 }
         );
     }
+
+
 
     create() {
         const THICKNESS = 20;
         let level = this.level = this.physics.add.staticGroup();
+        // Border
         level.add(this.add.rectangle(0, 0, WIDTH, THICKNESS, 0x00aa00).setOrigin(0, 0));
         level.add(this.add.rectangle(WIDTH - THICKNESS, 0, THICKNESS, HEIGHT, 0x00aa00).setOrigin(0, 0));
         level.add(this.add.rectangle(0, HEIGHT - THICKNESS, WIDTH, THICKNESS, 0x00aa00).setOrigin(0, 0));
         level.add(this.add.rectangle(0, 0, THICKNESS, HEIGHT, 0x00aa00).setOrigin(0, 0));
 
-        this.player = this.physics.add.sprite(100, 450, 'dude');
+        // Inneards
+        level.add(this.add.rectangle(0, THICKNESS+32, WIDTH-THICKNESS-32, THICKNESS, 0x00aa00).setOrigin(0, 0));
+        level.add(this.add.rectangle(THICKNESS+32, THICKNESS*2+32+32, WIDTH-THICKNESS-32, THICKNESS, 0x00aa00).setOrigin(0, 0));
+
+        let playerSprite = this.add.sprite(0, 0, 'dude');
+        this.haloTop = this.add.rectangle(0, -17, 32, 1, 0x0000ff);
+        this.haloRight = this.add.rectangle(17, 0, 1, 32, 0x0000ff);
+        this.haloBottom = this.add.rectangle(0, 17, 32, 1, 0x0000ff);
+        this.haloLeft = this.add.rectangle(-17, 0, 1, 32, 0x0000ff);
+        this.player = this.add.container(THICKNESS + 16, THICKNESS + 16, [
+            this.haloTop,
+            this.haloRight,
+            this.haloBottom,
+            this.haloLeft,
+            playerSprite
+        ]);
+        this.player.setSize(32, 32);
+        // this.player.
+        this.physics.world.enable(this.player);
+        this.physics.world.enable([this.haloTop, this.haloRight, this.haloBottom, this.haloLeft]);
+    
         this.physics.add.collider(this.player, level);
-        
 
         
         // level.add.rectangle(0, HEIGHT - THICKNESS, WIDTH, THICKNESS, 0x00aa00).setOrigin(0, 0);
@@ -160,7 +190,9 @@ let config = {
     height: 600,
     physics: {
         default: 'arcade',
-        arcade: {}
+        arcade: {
+            debug: false
+        }
     },
     scene: GameScene
 };
