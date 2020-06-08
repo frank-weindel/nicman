@@ -11,23 +11,23 @@ const THICKNESS = 32;
 // 25 x 19 blocks
 const levelMap = [
     "=========================",
+    "=      =   ===   =      =",
+    "= = ==   =     =   == = =",
+    "=   =* =========== *=   =",
+    "= = ==   =     =   == = =",
+    "=      =   = =   =      =",
+    "= ========== ========== =",
     "=                       =",
+    "= = === ========= === = =",
     "=                       =",
-    "=                       =",
-    "=                       =",
-    "=                       =",
-    "= ===================== =",
-    "=                       =",
-    "= ===================== =",
-    "=                       =",
-    "= ===================== =",
-    "=                       =",
-    "= ===================== =",
-    "=...........o...........=",
-    "=.=====================.=",
-    "=.......................=",
-    "=.=====================.=",
-    "=*.....................*=",
+    "= = ======= = ======= = =",
+    "= =         =         = =",
+    "= === ============= === =",
+    "=           o           =",
+    "= = === = = = = = === = =",
+    "= =     = = = = =     = =",
+    "= === === = = = === === =",
+    "=*                     *=",
     "=========================",
 ];
 
@@ -60,6 +60,7 @@ class GameScene extends Phaser.Scene {
             visible: false,
             key: 'Game',
         });
+        this.score = 0;
     }
 
     update() {
@@ -158,6 +159,9 @@ class GameScene extends Phaser.Scene {
 
     create() {
         let level = this.level = this.physics.add.staticGroup();
+        let dots = this.dots = this.physics.add.group({
+            // key: 'dot'
+        });
 
         let playerLevelPos = { x: 1, y: 1 };
         levelMap.forEach((levelLine, y) => {
@@ -166,10 +170,11 @@ class GameScene extends Phaser.Scene {
                     case '=':
                         level.add(this.add.rectangle(x * THICKNESS, y * THICKNESS, THICKNESS, THICKNESS, 0x00aa00).setOrigin(0, 0));
                         break;
-                    case '.':
-                        // level.add(this.add.rectangle(x * THICKNESS + 16, y * THICKNESS + 16, 4, 4, 0xffffff));
+                    case ' ':
+                        dots.add(this.add.rectangle(x * THICKNESS + 16, y * THICKNESS + 16, 4, 4, 0xffffff).setName('dot'));
                         break;
                     case '*':
+                        dots.add(this.add.rectangle(x * THICKNESS + 16, y * THICKNESS + 16, 16, 16, 0xffffff).setName('powerUp'));
                         break;
                     case 'o':
                         playerLevelPos.x = x;
@@ -208,6 +213,7 @@ class GameScene extends Phaser.Scene {
         this.physics.world.enable([this.haloTop, this.haloRight, this.haloBottom, this.haloLeft]);
 
         this.physics.add.collider(this.player, level);
+        this.physics.add.overlap(this.player, dots, this.collectDot, null, this);
 
 
         this.anims.create({
@@ -222,7 +228,9 @@ class GameScene extends Phaser.Scene {
 
         this.playerSprite.anims.play('right');
 
-        this.posText = this.add.text(16, 16, 'Score: 0', { fontSize: '20px', fill: '#fff' });
+        this.posText = this.add.text(16, 16, '', { fontSize: '20px', fill: '#fff' });
+        this.scoreText = this.add.text(WIDTH, HEIGHT, 'Score: 0', { fontSize: '20px', fill: '#fff' }).setOrigin(1, 1);
+
 
         // level.add.rectangle(0, HEIGHT - THICKNESS, WIDTH, THICKNESS, 0x00aa00).setOrigin(0, 0);
         // level.add.rectangle(0, HEIGHT - THICKNESS, WIDTH, THICKNESS, 0x00aa00).setOrigin(0, 0);
@@ -287,6 +295,25 @@ class GameScene extends Phaser.Scene {
         // scoreText = this.add.text(16, 16, 'Score: 0', { fontSize: '32px', fill: '#000' });
     }
 
+    /**
+     *
+     * @param {Phaser.GameObjects.Sprite} player
+     * @param {Phaser.GameObjects.Rectangle} dot
+     */
+    collectDot(player, dot) {
+        dot.body.setEnable(false);
+        dot.setVisible(false);
+
+        if (dot.name === 'dot') {
+            this.score += 100;
+        }
+        else if (dot.name === 'powerUp') {
+            this.score += 1000;
+        }
+
+        this.scoreText.setText(`Score: ${this.score}`);
+    }
+
     // hitBomb(player, bomb) {
     //     this.physics.pause();
 
@@ -297,25 +324,7 @@ class GameScene extends Phaser.Scene {
     //     gameOver = true;
     // }
 
-    // collectStar(player, star) {
-    //     star.disableBody(true, true);
 
-    //     score += 10;
-    //     scoreText.setText('Score: ' + score);
-
-    //     if (stars.countActive(true) === 0) {
-    //         stars.children.iterate(child => {
-    //             child.enableBody(true, child.x, 0, true, true);
-    //         });
-
-    //         let x = (player.x < 400) ? Phaser.Math.Between(400, 800) : Phaser.Math.Between(0, 400);
-
-    //         let bomb = bombs.create(x, 16, 'bomb');
-    //         bomb.setBounce(1);
-    //         bomb.setCollideWorldBounds(true);
-    //         bomb.setVelocity(Phaser.Math.Between(-200, 200), 20);
-    //     }
-    // }
 }
 
 let config = {
